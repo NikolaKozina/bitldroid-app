@@ -12,7 +12,7 @@ To build, you will need an Android SDK.
 
 1. First initialize the Android project using the "android" program found in the SDK tools directory. In the bitldroid-app directory:
 
-    `~/android-sdk-linux/tools/android --path . --target android-23`
+    `~/android-sdk-linux/tools/android update project --path . --target android-23`
 
 2. Now Compile: 
 
