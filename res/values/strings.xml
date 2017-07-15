@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BitlDroid</string>
+    <string name="dialog_based_preferences">Preferences</string>
+    <string name="title_checkbox_enabled">Enable</string>
+    <string name="summary_checkbox_enabled">Enable BitlDroid Service</string>
+    <string name="title_serverip">Server IP</string>
+    <string name="summary_serverip">Server IP</string>
+    <string name="dialog_title_serverip">Server IP Dialog</string>
+    <string name="title_serverport">Server Port</string>
+    <string name="summary_serverport">Server Port</string>
+    <string name="dialog_title_serverport">BitlDroid</string>
+    <string name="myCoolButton">BitlDroid</string>
+
+</resources>

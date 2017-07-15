@@ -1,0 +1,13 @@
+#contacts:
+X phone :: name ;
+
+C//Command/params\0
+    begincontact1   numcontacts
+    contact2        phone       name
+    endcontact1     numcontacts
+    getsms2         phonenum    message
+
+
+
+D result id resultcode message
+
