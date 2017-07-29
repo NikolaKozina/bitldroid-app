@@ -19,7 +19,7 @@ import java.net.InetAddress;
 
 public class NetworkChange extends BroadcastReceiver 
 {
-    private static final String TAG = "bitlbeenetwork";
+    private static final String TAG = "bitldroid-network";
     private Socket sck = null;
     private String SERVERIP;
     private String SERVERPORT;

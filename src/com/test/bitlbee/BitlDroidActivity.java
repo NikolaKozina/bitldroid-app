@@ -45,7 +45,7 @@ import android.app.ActivityManager.RunningServiceInfo;
 
 public class BitlDroidActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener
 {
-    private static final String TAG = "bitlbee_preference";
+    private static final String TAG = "bitldroid-preference";
     private WifiManager mWifi;
     private SharedPreferences mPref;
 

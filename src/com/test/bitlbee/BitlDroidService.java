@@ -41,7 +41,7 @@ import android.app.Activity;
 import android.database.Cursor;
 
 public class BitlDroidService extends Service{
-    private static final String LOGTAG = "bitlbeeservice";
+    private static final String LOGTAG = "bitldroid-service";
 
     private static final int PORT = 8888;
     private static String SERVERIP;

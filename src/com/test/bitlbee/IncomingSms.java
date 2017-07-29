@@ -32,7 +32,7 @@ import android.net.wifi.SupplicantState;
 
 public class IncomingSms extends BroadcastReceiver
 {
-    private static final String TAG = "bitlbeereceiver";
+    private static final String TAG = "bitldroid-receiver";
     final SmsManager sms=SmsManager.getDefault();
     private Socket bitlbeeSocket = null;
     private String SERVERIP;

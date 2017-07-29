@@ -30,7 +30,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.SupplicantState;
 
 public class WifiStateChange extends BroadcastReceiver {
-    private static final String TAG = "bitlbeewifichange";
+    private static final String TAG = "bitldroid-wifichange";
     @Override
     public void onReceive(Context context, Intent intent) {
         WifiManager wifiManager = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
