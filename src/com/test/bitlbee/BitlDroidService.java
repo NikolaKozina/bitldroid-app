@@ -40,8 +40,17 @@ import android.content.Context;
 import android.app.Activity;
 import android.database.Cursor;
 
+//sendHistory
+import android.content.ContentUris;
+import android.provider.Telephony.Threads;
+import android.provider.Telephony;
+import android.provider.BaseColumns;
+
+import android.provider.Contacts;
+
 public class BitlDroidService extends Service{
     private static final String LOGTAG = "bitldroid-service";
+    private static final String LOGTAGsms = "bitldroid-service-viewsms";
 
     private static final int PORT = 8888;
     private static String SERVERIP;
@@ -137,7 +146,11 @@ public class BitlDroidService extends Service{
                                     {
                                         sendSMS(line);
                                     } else {
-                                        sendContacts();
+                                        if (line.startsWith("H"))
+                                        {
+                                            sendHistory(line);
+                                        } else
+                                            sendContacts();
                                         //socket.close();
                                         Log.d(LOGTAG, "sendContacts: " );
                                     }
@@ -160,20 +173,20 @@ public class BitlDroidService extends Service{
                             Log.d(LOGTAG,"running=false");
                             server.close();
                         } catch (Exception e) {
-            Writer writer = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(writer);
-            e.printStackTrace(printWriter);
-            String s = writer.toString();
+                            Writer writer = new StringWriter();
+                            PrintWriter printWriter = new PrintWriter(writer);
+                            e.printStackTrace(printWriter);
+                            String s = writer.toString();
                             Log.e(LOGTAG,"thread exception: " + e + s);
                         }
                     }
                 };
                 thread.start();
             } catch (Exception e) {
-            Writer writer = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(writer);
-            e.printStackTrace(printWriter);
-            String s = writer.toString();
+                Writer writer = new StringWriter();
+                PrintWriter printWriter = new PrintWriter(writer);
+                e.printStackTrace(printWriter);
+                String s = writer.toString();
                 Log.e(LOGTAG,"exception: " + e + s);
             }
         }
@@ -204,6 +217,8 @@ public class BitlDroidService extends Service{
         if (cur.getCount() > 0) {
             while (cur.moveToNext()) {
                 String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+                //String key = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+                //Log.d("smskey: ",key + " " + name);
                 String name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
                 String phone="0";
                 if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
@@ -241,17 +256,17 @@ public class BitlDroidService extends Service{
                     }
 
                     /*
-                    Log.i(LOGTAG,  String.format("%d", Activity.RESULT_OK));
-                    Log.i(LOGTAG, "Successful");
-                    Log.i(LOGTAG, String.format("%d", SmsManager.RESULT_ERROR_GENERIC_FAILURE));
-                    Log.i(LOGTAG, "Failed    ");
-                    Log.i(LOGTAG, String.format("%d", SmsManager.RESULT_ERROR_RADIO_OFF));
-                    Log.i(LOGTAG, "Radio off ");
-                    Log.i(LOGTAG, String.format("%d", SmsManager.RESULT_ERROR_NULL_PDU));
-                    Log.i(LOGTAG, "No PDU    ");
-                    Log.i(LOGTAG, String.format("%d", SmsManager.RESULT_ERROR_NO_SERVICE));
-                    Log.i(LOGTAG, "No service");
-                    */
+                       Log.i(LOGTAG,  String.format("%d", Activity.RESULT_OK));
+                       Log.i(LOGTAG, "Successful");
+                       Log.i(LOGTAG, String.format("%d", SmsManager.RESULT_ERROR_GENERIC_FAILURE));
+                       Log.i(LOGTAG, "Failed    ");
+                       Log.i(LOGTAG, String.format("%d", SmsManager.RESULT_ERROR_RADIO_OFF));
+                       Log.i(LOGTAG, "Radio off ");
+                       Log.i(LOGTAG, String.format("%d", SmsManager.RESULT_ERROR_NULL_PDU));
+                       Log.i(LOGTAG, "No PDU    ");
+                       Log.i(LOGTAG, String.format("%d", SmsManager.RESULT_ERROR_NO_SERVICE));
+                       Log.i(LOGTAG, "No service");
+                       */
                 }
             }
             Log.i(LOGTAG, "Sent contacts");
@@ -294,50 +309,218 @@ public class BitlDroidService extends Service{
                 sck.close();
                 Log.d(LOGTAG,"-------close");
             } catch (Exception e) {
-            Writer writer = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(writer);
-            e.printStackTrace(printWriter);
-            String s = writer.toString();
+                Writer writer = new StringWriter();
+                PrintWriter printWriter = new PrintWriter(writer);
+                e.printStackTrace(printWriter);
+                String s = writer.toString();
                 Log.e(LOGTAG,"sendContacts exception: " + e +s);
             }
     }
 
-    public void sendHistory()
+    public void sendHistory(String line)
     {
-        try{
+        String[] PROJECTION = new String[] {
+            Telephony.MmsSms.TYPE_DISCRIMINATOR_COLUMN,
+                BaseColumns._ID,
+                Telephony.Sms.Conversations.THREAD_ID,
+                // For SMS
+                Telephony.Sms.ADDRESS,
+                Telephony.Sms.BODY,
+                Telephony.Sms.DATE,
+                Telephony.Sms.DATE_SENT,
+                Telephony.Sms.READ,
+                Telephony.Sms.TYPE,
+                Telephony.Sms.STATUS,
+                Telephony.Sms.LOCKED,
+                Telephony.Sms.ERROR_CODE,
+                // For MMS
+                Telephony.Mms.SUBJECT,
+                Telephony.Mms.SUBJECT_CHARSET,
+                Telephony.Mms.DATE,
+                Telephony.Mms.DATE_SENT,
+                Telephony.Mms.READ,
+                Telephony.Mms.MESSAGE_TYPE,
+                Telephony.Mms.MESSAGE_BOX,
+                Telephony.Mms.DELIVERY_REPORT,
+                Telephony.Mms.READ_REPORT,
+                Telephony.MmsSms.PendingMessages.ERROR_TYPE,
+                Telephony.Mms.LOCKED,
+                Telephony.Mms.STATUS,
+                Telephony.Mms.TEXT_ONLY
+        };
 
-            Uri mSmsinboxQueryUri = Uri.parse("content://sms/inbox");
-            Cursor cursor1 = getContentResolver().query(mSmsinboxQueryUri,new String[] { "_id", "thread_id", "address", "person", "date","body", "type" }, null, null, null);
-                //startManagingCursor(cursor1);
-            String[] columns = new String[] { "address", "person", "date", "body","type" };
-            if (cursor1.getCount() > 0) {
-                String count = Integer.toString(cursor1.getCount());
-                while (cursor1.moveToNext()){
-                    String address = cursor1.getString(cursor1.getColumnIndex(columns[0]));
+        String number;
+        final String[] separated = line.split(":");
+        number=separated[1];
+        Log.d(LOGTAGsms, "N" + number);
 
-                    if(address.equalsIgnoreCase("6474495076")){ //put your number here
-                        String name = cursor1.getString(cursor1.getColumnIndex(columns[1]));
-                        String date = cursor1.getString(cursor1.getColumnIndex(columns[2]));
-                        String body = cursor1.getString(cursor1.getColumnIndex(columns[3]));
-                        String type = cursor1.getString(cursor1.getColumnIndex(columns[4]));
+        //Get the thread_id first:
+        Cursor pCur = getContentResolver().query(
+                Uri.parse("content://mms-sms/canonical-addresses"), 
+                new String[]{"_id"},
+                "address" + " = \"" + number + "\"",
+                null, null);
 
-                        Log.d(LOGTAG, "body="+body);
+        String thread_id = null;
 
+        if (pCur != null) {
+            if (pCur.getCount() != 0) {
+                pCur.moveToNext();
+                thread_id = pCur.getString(pCur.getColumnIndex("_id"));
+            }
+            pCur.close();
+        }
+        Log.d(LOGTAGsms, "T " + thread_id);
+
+        //The easy way didn't work, so try the slow way
+        if (thread_id==null)
+        {
+            Log.d(LOGTAGsms, "SLOW SEARCH==============");
+            final String[] projection = new String[]{"_id", "ct_t","thread_id", "address","body"};
+            Uri smsUri = Uri.parse("content://mms-sms/conversations/");
+            Cursor cursor = getContentResolver().query(smsUri, projection, null, null, null);
+
+            cursor.moveToFirst();
+
+            while(cursor.moveToNext())
+            {
+                String newNumber;
+                newNumber=cursor.getString(3);
+                if (newNumber!=null){
+                    //Compare the stripped phone numbers
+                    if (formatNumber(newNumber).indexOf(formatNumber(number))!=-1)
+                    {
+                        thread_id=cursor.getString(2);
+                        Log.d(LOGTAGsms,"FOUND THREAD ID: " + thread_id);
                     }
-
-
                 }
             }
 
+            if (thread_id==null)
+            {
+                Log.d(LOGTAGsms, "No thread ID found. SHAMEFUL DISPLAY");
+                return;
+            }
+        }
+
+        //Use the thread_id to load the conversation into a cursor
+        Uri smsUri;
+        Cursor cursor;
+        smsUri = Uri.parse("content://mms-sms/conversations/"+thread_id);
+        cursor = getContentResolver().query(smsUri, PROJECTION, null, null, null);
+
+        int messageCount;
+        messageCount=10; //how many messages from the history to send
+
+        if(cursor.getCount()<messageCount)
+            messageCount=cursor.getCount();
+
+        try{
+            ByteBuffer intbuf = ByteBuffer.allocate(4);
+            ByteBuffer b = ByteBuffer.allocate(4);
+            ByteBuffer onebuf = ByteBuffer.allocate(1);
+
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+
+            //Write a short header:
+            //  phone number character count
+            //  phone number
+            //  message count
+            byte[] addressBytes;
+            addressBytes=number.getBytes(StandardCharsets.UTF_8); //phone number count
+            intbuf.putInt(0,addressBytes.length);
+            byteStream.write(intbuf.array());
+
+            byteStream.write(addressBytes); //phone number
+            intbuf.putInt(0,messageCount);
+            byteStream.write(intbuf.array()); //message count
+
+            //Add each message TLV to the frame: (int) type; (int) message length; (char*) message
+            cursor.move(-messageCount);
+            while(cursor.moveToNext())
+            {
+                String sms_mms;
+                String body;
+                byte[] bodyBytes=null;
+                byte messageType=0;
+
+                sms_mms=cursor.getString(0);
+                body=cursor.getString(4);
+
+                if (body!=null)
+                    bodyBytes=body.getBytes(StandardCharsets.UTF_8);
+
+                //Set the type: 0= received sms ; 1= sent sms ; 2= received mms;
+                //              3= sent mms ... or something like that
+                if (cursor.getInt(8)==1)
+                    if (sms_mms.equals("sms"))
+                        messageType=0;
+                    else
+                        messageType=1;
+                else
+                    if (sms_mms.equals("sms"))
+                        messageType=2;
+                    else
+                        messageType=3;
+
+                byteStream.write(messageType); //Type
+                if (body!=null)
+                    intbuf.putInt(0,bodyBytes.length);
+                else
+                    intbuf.putInt(0,0);
+                byteStream.write(intbuf.array()); //Length
+                if (body!=null)
+                    byteStream.write(bodyBytes); //Value
+
+
+                Log.d(LOGTAGsms, "TEST : |" + cursor.getString(0)+"| |"+number);
+                Log.d(LOGTAGsms, "L   " + messageType + " "  + cursor.getString(4));
+            }
+
+            byte[] byteStreamArray;
+            byteStreamArray=byteStream.toByteArray();
+            intbuf.putInt(0,byteStreamArray.length);
+
+            //Send the message history out through a TCP socket
+            Socket sck;
+            sck = new Socket(SERVERIP, PORT);
+            Log.d(LOGTAG,"-------open");
+
+            OutputStream out;
+            out=sck.getOutputStream();
+
+            out.write(0x01); //ASCII header start
+            out.write('H'); //Message history identifier
+            out.write(intbuf.array()); //Total frame size
+            out.write(0x02);
+            out.write(byteStreamArray); //Message history payload
+            out.write(0x04);
+
+            Log.i(LOGTAG, "sending message history");
+            out.flush();
+            sck.close();
+            Log.d(LOGTAG,"-------close");
         } catch (Exception e) {
             Writer writer = new StringWriter();
             PrintWriter printWriter = new PrintWriter(writer);
             e.printStackTrace(printWriter);
             String s = writer.toString();
-            Log.e(LOGTAG,"sendHistory exception: " + e + s);
+            Log.e(LOGTAG,"sendHistory exception: " + e +s);
         }
+    }
 
+    private String formatNumber(String number)
+    {
+        if (number==null)
+            return null;
+        String output;
 
+        output=number.replaceAll("[^\\d]", "");
+        if (output.startsWith("1"))
+        {
+            output=output.substring(1);
+        }
+        return output;
     }
 
     public void sendSMS(String line)
@@ -385,7 +568,7 @@ public class BitlDroidService extends Service{
                     OutputStream out;
                     out=sck.getOutputStream();
 
-                    
+
 
                     String body;
                     body=  String.format("S/%5d/%2dX%s",
@@ -410,10 +593,10 @@ public class BitlDroidService extends Service{
                     sck.close();
                     Log.d(LOGTAG,"-------close");
                 } catch (Exception e) {
-            Writer writer = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(writer);
-            e.printStackTrace(printWriter);
-            String s = writer.toString();
+                    Writer writer = new StringWriter();
+                    PrintWriter printWriter = new PrintWriter(writer);
+                    e.printStackTrace(printWriter);
+                    String s = writer.toString();
                     Log.e(LOGTAG,"sent intent exception: " + e + s);
                 }
             }
@@ -451,10 +634,10 @@ public class BitlDroidService extends Service{
                     String body;
                     //body=new String;
                     body=String.format("D %10s (%5d)[%2d] X%s",
-                                        result,
-                                        intent.getIntExtra("id",-100),
-                                        getResultCode(),
-                                        intent.getStringExtra("msg"));
+                            result,
+                            intent.getIntExtra("id",-100),
+                            getResultCode(),
+                            intent.getStringExtra("msg"));
 
                     byte[] strBytes;
                     strBytes=body.getBytes(StandardCharsets.UTF_8);
